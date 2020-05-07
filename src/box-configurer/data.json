@@ -1,0 +1,26 @@
+[
+  {
+    "id": "w1",
+    "group": "ROOT",
+    "content": "w1-content",
+    "configuration": {
+      "order": 0
+    }
+  },
+  {
+    "id": "w2",
+    "group": "ROOT",
+    "content": "w2-content",
+    "configuration": {
+      "order": 1
+    }
+  },
+  {
+    "id": "w3",
+    "group": "ROOT",
+    "content": "w3-content",
+    "configuration": {
+      "order": 2
+    }
+  }
+]
