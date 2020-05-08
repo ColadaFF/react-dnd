@@ -1,20 +1,10 @@
 import React from "react";
 import { Droppable, Draggable } from "react-beautiful-dnd";
-
-const getItems = (count, parentKey) =>
-  Array.from({ length: count }, (v, k) => k).map((k) => ({
-    id: `sub-item-${k}-${parentKey}`,
-    content: `sub-item ${k}`,
-  }));
-
-// a little function to help us with reordering the result
-const reorder = (list, startIndex, endIndex) => {
-  const result = Array.from(list);
-  const [removed] = result.splice(startIndex, 1);
-  result.splice(endIndex, 0, removed);
-
-  return result;
-};
+import { bindActionCreators } from "redux";
+import { connect } from "react-redux";
+import { Row, Col } from "react-flexbox-grid";
+import _ from "lodash";
+import { moveElement } from "../ducks";
 
 const grid = 8;
 
@@ -22,17 +12,12 @@ const getItemStyle = (isDragging, draggableStyle) => ({
   // some basic styles to make the items look a bit nicer
   userSelect: "none",
   padding: grid * 2,
-  margin: `0 10px 10px 0`,
-
   display: "inline-flex",
-  width: "120px",
-  padding: "10px",
+  width: "100%",
+  boxSizing: "border-box",
 
   // change background colour if dragging
   background: isDragging ? "lightgreen" : "grey",
-  display: "inline-flex",
-  padding: "10px",
-  margin: "0 10px 10px 0",
   border: "1px solid grey",
   // styles we need to apply on draggables
   ...draggableStyle,
@@ -44,49 +29,68 @@ const getListStyle = (isDraggingOver) => ({
   margin: "10px 0",
 });
 
-class GroupManager extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      items: getItems(4, props.parentKey),
-    };
+const HorizontalGroup = ({ parentKey, list }) => {
+  const isEmptyList = _.size(list) === 0;
+  if (isEmptyList) {
+    return null;
   }
 
-  render() {
-    const { type } = this.props;
-    return (
-      <Droppable droppableId={type} type={type}>
-        {(provided, snapshot) => {
-          console.log("is", { placeholder: provided.placeholder });
-          return (
-            <div {...provided.droppableProps} ref={provided.innerRef} style={getListStyle(snapshot.isDraggingOver)}>
-              {this.state.items.map((item, index) => (
+  return (
+    <Droppable droppableId={parentKey} type={parentKey} direction="horizontal">
+      {(provided, snapshot) => {
+        console.log("is", { placeholder: provided.placeholder });
+        return (
+          <div {...provided.droppableProps} ref={provided.innerRef} style={getListStyle(snapshot.isDraggingOver)}>
+            <Row>
+              {list.map((item, index) => (
                 <Draggable key={item.id} draggableId={item.id} index={index}>
                   {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      style={getItemStyle(snapshot.isDragging, provided.draggableProps.style)}
-                    >
-                      {item.content}
-                      <span
-                        {...provided.dragHandleProps}
-                        style={{ display: "inline-block", margin: "0 10px", border: "1px solid #000" }}
+                    <Col xs={6}>
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        style={getItemStyle(snapshot.isDragging, provided.draggableProps.style)}
                       >
-                        Drag
-                      </span>
-                    </div>
+                        {item.content}
+                        <span
+                          {...provided.dragHandleProps}
+                          style={{ display: "inline-block", margin: "0 10px", border: "1px solid #000" }}
+                        >
+                          Drag
+                        </span>
+                      </div>
+                    </Col>
                   )}
                 </Draggable>
               ))}
               {provided.placeholder}
-            </div>
-          );
-        }}
-      </Droppable>
-    );
-  }
-}
+            </Row>
+          </div>
+        );
+      }}
+    </Droppable>
+  );
+};
 
-export default GroupManager;
+const mapStateToProps = ({ boxConfiguration }, ownProps) => {
+  const { parentKey } = ownProps;
+  const { groups, ids } = boxConfiguration;
+  const list = _.get(groups, parentKey, []);
+  const listWithValues = list.map((id) => {
+    return ids[id];
+  });
+  return {
+    list: listWithValues,
+  };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return bindActionCreators(
+    {
+      moveElement,
+    },
+    dispatch
+  );
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(HorizontalGroup);

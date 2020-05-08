@@ -12,6 +12,7 @@
     "react": "15.6",
     "react-beautiful-dnd": "6.0.2",
     "react-dom": "15.6",
+    "react-flexbox-grid": "^2.1.2",
     "react-redux": "4.4.10",
     "redux": "3.7.2"
   },

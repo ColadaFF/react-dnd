@@ -22,5 +22,21 @@
     "configuration": {
       "order": 2
     }
+  },
+  {
+    "id": "w4",
+    "group": "w2",
+    "content": "w4-content",
+    "configuration": {
+      "order": 1
+    }
+  },
+  {
+    "id": "w5",
+    "group": "w2",
+    "content": "w5-content",
+    "configuration": {
+      "order": 2
+    }
   }
 ]

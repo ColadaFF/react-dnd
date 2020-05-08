@@ -23,14 +23,22 @@ const getItemStyle = (isDragging, draggableStyle) => ({
 
 const getListStyle = (isDraggingOver) => ({
   background: isDraggingOver ? "lightblue" : "lightgrey",
-  padding: grid,
-  width: 200,
+  boxSizing: "border-box",
+  padding: 10,
+  width: "100%",
+  minHeight: "100%",
+  position: "relative",
 });
 
-const Configurer = ({ groups, ids, moveElement }) => {
-  const listId = "ROOT";
-  const rootGroup = _.get(groups, listId, []);
+const placeholderStyle = {
+  position: "absolute",
+  backgroundColor: "white",
+  borderRadius: 3,
+  border: "dashed 1px blue",
+  backgroundColor: "white",
+};
 
+const Configurer = ({ list, listId, moveElement }) => {
   const onDragEnd = ({ destination, source, type }) => {
     console.log({ destination, source, type });
     if (!destination) {
@@ -51,21 +59,20 @@ const Configurer = ({ groups, ids, moveElement }) => {
     };
     moveElement(payload);
   };
-
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <Droppable droppableId={listId} type={listId}>
         {(provided, snapshot) => {
-          const { placeholder } = provided;
+          console.log(JSON.stringify({ placeholder: provided.placeholder }, null, 2));
           return (
             <div {...provided.droppableProps} ref={provided.innerRef} style={getListStyle(snapshot.isDraggingOver)}>
-              {rootGroup.map((id, index) => {
-                const item = _.get(ids, id);
+              {list.map((item, index) => {
                 return (
-                  <Draggable key={id} draggableId={id} index={index}>
+                  <Draggable key={item.id} draggableId={item.id} index={index}>
                     {(provided, snapshot) => {
                       return (
                         <div
+                          data-draggable-id={item.id}
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           style={getItemStyle(snapshot.isDragging, provided.draggableProps.style)}
@@ -77,27 +84,21 @@ const Configurer = ({ groups, ids, moveElement }) => {
                           >
                             Drag
                           </span>
-                          {/*<DraggableGroup type={item.content} parentKey={item.id} />*/}
+                          <DraggableGroup type={item.content} parentKey={item.id} />
+                          {provided.placeholder}
                         </div>
                       );
                     }}
                   </Draggable>
                 );
               })}
-              {placeholder}
+              {provided.placeholder}
             </div>
           );
         }}
       </Droppable>
     </DragDropContext>
   );
-};
-
-const mapStateToProps = ({ boxConfiguration }) => {
-  console.log({ boxConfiguration });
-  return {
-    ...boxConfiguration,
-  };
 };
 
 const mapDispatchToProps = (dispatch) => {
@@ -107,6 +108,17 @@ const mapDispatchToProps = (dispatch) => {
     },
     dispatch
   );
+};
+
+const mapStateToProps = ({ boxConfiguration }) => {
+  const { groups, ids } = boxConfiguration;
+  const listId = "ROOT";
+  const list = _.get(groups, listId, []);
+  const listWithItems = list.map((id) => ids[id]);
+  return {
+    list: listWithItems,
+    listId,
+  };
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Configurer);
